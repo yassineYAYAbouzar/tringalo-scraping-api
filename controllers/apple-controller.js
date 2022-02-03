@@ -1,14 +1,14 @@
 const axios = require('axios')
 const cheerio = require('cheerio')
 
+
 exports.findProduct = async (req, res) => {
     try {//try
         
         let url = req.body.url//save url
-        if(!url.includes('mediamarkt')) throw "Not Valid URL"
+        if(!url.includes('apple')) throw "Not Valid URL"
 
-      
-        let page = await fetchScraperAPI(process.env.SCRAPER_API_KEY, url)//fetch MM page through ScraperAPI gateway
+        let page = await axios.get(url)//load page
         if(page === null || page==='') throw "Error Loading WebPage"
 
         const $ = cheerio.load(page.data)//load cheerio with page
@@ -31,10 +31,4 @@ exports.findProduct = async (req, res) => {
         }).end()
     }
 
-}
-
-const fetchScraperAPI = (apiKey, url) => {
-    let scraperAPIURL = `http://api.scraperapi.com?api_key=${apiKey}&url=${url}`;//we prepare the url
-
-    return axios.get(scraperAPIURL)//return axios promise
 }
