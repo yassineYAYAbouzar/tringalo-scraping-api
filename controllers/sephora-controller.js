@@ -16,7 +16,9 @@ exports.findProduct = async (req, res) => {
         const product = {}//create product
         product.title = $('meta[property = og:title]').attr('content')//scrap og:title
         product.description = $('meta[property = og:description]').attr('content')//scrap og:description
-        product.image = $('meta[property = og:image]').attr('content')//scrap og:img
+        product.image = '' //$('meta[property = og:image]').attr('content')//scrap og:img
+        product.price = ''//we dont know price
+        product.currency = 'EUR'//by default
         
         res.json({//send response with succes status
             status: 'success',

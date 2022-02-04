@@ -1,22 +1,18 @@
 const axios = require('axios')
 const cheerio = require('cheerio')
+const {getContent} = require('../puppeteer/controllers/mediamarkt-browser-controller')
 
 exports.findProduct = async (req, res) => {
     try {//try
-        
+
+        //HERE WE GET CONTENT
         let url = req.body.url//save url
-        if(!url.includes('mediamarkt')) throw "Not Valid URL"
+        let content = await getContent(url)//return page content
+        $ = cheerio.load(content)//load content into cheerio
 
-      
-        let page = await fetchScraperAPI(process.env.SCRAPER_API_KEY, url)//fetch MM page through ScraperAPI gateway
-        if(page === null || page==='') throw "Error Loading WebPage"
-
-        const $ = cheerio.load(page.data)//load cheerio with page
-
+        //HERE WE PROCESS OUR INFO
         const product = {}//create product
-        product.title = $('meta[property = og:title]').attr('content')//scrap og:title
-        product.description = $('meta[property = og:description]').attr('content')//scrap og:description
-        product.image = $('meta[property = og:image]').attr('content')//scrap og:img
+        product.title = $.html('h1').text()
         
         res.json({//send response with succes status
             status: 'success',

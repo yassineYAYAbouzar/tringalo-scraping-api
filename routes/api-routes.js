@@ -2,7 +2,7 @@ const express = require('express')//express
 const router = express.Router()//express router
 const middleware = require('../middleware/middleware')//middlewares
 
-//router.use(middleware.countRequestesMiddleware)
+router.use(middleware.countRequestesMiddleware)
 
 //Zalando Routes
 const zalando_controller = require('../controllers/zalando-controller')

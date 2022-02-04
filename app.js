@@ -22,3 +22,9 @@ app.use(express.urlencoded({extended: false}))
 //API ROUTES
 const api_routes = require('./routes/api-routes')
 app.use('/api', api_routes)
+
+//START BROWSER
+const { startBrowser } = require('./puppeteer/browser')
+startBrowser().then(browser => global.browser = browser)
+global.tabs = 0
+
