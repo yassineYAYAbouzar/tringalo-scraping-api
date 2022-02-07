@@ -15,6 +15,7 @@ exports.findProduct = async (req, res) => {
         
         let product = {}
         if(await checkIfProductIsInDB(url)){//if product exist in DB, we return data from db to user
+            global.tabs--
             product = await Product.findOne({productLink: url})
             
 
@@ -26,20 +27,20 @@ exports.findProduct = async (req, res) => {
 
             switch(topLevelDomain){//switch between cases
                 case '.com'://.com
-                    product = processPageDotCom($)//return product
+                    product = processPageDotCom($)//return THE product
                 break;
 
                 case '.es'://.es
-                    product = processPageDotEs($)
+                    product = processPageDotEs($)//return EL product
                 break;
 
                 case '.fr'://.fr
-                    product = processPageDotFr($)
+                    product = processPageDotFr($)//return LE product
                 break;
             }
         }
 
-        await saveProductToDB(product, url)//we save the product to the db
+        product = await saveProductToDB(product, url)//we save the product to the db
 
         res.json({//send response with succes status
             status: 'success',
@@ -85,6 +86,10 @@ const checkIfProductIsInDB = async (url) => {//true if product is in db, false i
     if(!product){
         return false
     }else{
+        
+
+        console.log(new Date())
+        console.log(product.updatedAt.getTime())
         return true
     }
      
@@ -117,9 +122,6 @@ const saveProductToDB = async (product, url) => {//saves product to db
     }
 }
 
-const checkIfProductHasAllProperties = (product) => {//check if product has all properties before sending it to view
-
-}
 
 const processPageDotCom = ($) => {
     const product = {}//create product
