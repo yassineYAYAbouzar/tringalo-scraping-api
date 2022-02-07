@@ -2,7 +2,7 @@ require('dotenv').config()//we set our enviromental variables
 const http = require('http')//http server
 const express = require('express')//express
 const cors = require('cors')//cors middleware
-
+const mongoose = require('mongoose')
 
 //create server instance
 const app = express()
@@ -18,6 +18,9 @@ httpServer.listen(process.env.PORT, () => {
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
+
+//CONNECT DB
+mongoose.connect(process.env.DB_QUERY).then(()=>console.log('mongodb connected...'))
 
 
 //API ROUTES
