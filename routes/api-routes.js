@@ -1,8 +1,10 @@
 const express = require('express')//express
-const router = express.Router()//express router
+const 
+router = express.Router()//express router
 const middleware = require('../middleware/middleware')//middlewares
 
-router.use(middleware.countRequestesMiddleware)
+// router.use(middleware.countRequestesMiddleware)
+
 
 //Zalando Routes
 const zalando_controller = require('../controllers/zalando-controller')
@@ -14,7 +16,7 @@ router.route('/zara').post(zara_controller.findProduct)
 
 //Sephora Routes
 const sephora_controller = require('../controllers/sephora-controller')
-router.route('/sephora').post(sephora_controller.findProduct)
+router.route('/sephora').post(middleware.isAllowedNav, sephora_controller.findProduct)
 
 //Wallapop Routes
 const wallapop_controller = require('../controllers/wallapop-controller')
@@ -37,5 +39,7 @@ router.route('/lidl').post(lidl_controller.findProduct)
 const ikea_controller = require('../controllers/ikea-controller')
 router.route('/ikea').post(ikea_controller.findProduct)
 
-
+//Gucci Routes
+const gucci_controller = require('../controllers/gucci-controller')
+router.route('/gucci').post(gucci_controller.findProduct)
 module.exports = router//module exports

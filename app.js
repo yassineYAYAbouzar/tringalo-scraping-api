@@ -19,6 +19,7 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 
+
 //API ROUTES
 const api_routes = require('./routes/api-routes')
 app.use('/api', api_routes)

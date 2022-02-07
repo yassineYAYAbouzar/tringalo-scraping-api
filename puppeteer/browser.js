@@ -12,7 +12,7 @@ let startBrowser = async () => {
 
         return browser
     } catch (err) {
-        console.log('Could not create a browser instance...')
+        console.log(err)
     }
 }
 

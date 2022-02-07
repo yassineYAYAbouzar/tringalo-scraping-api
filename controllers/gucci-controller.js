@@ -1,22 +1,23 @@
 const axios = require('axios')
 const cheerio = require('cheerio')
-const {getContent} = require('../puppeteer/controllers/sephora-browser-controller')
+
 
 exports.findProduct = async (req, res) => {
     try {//try
-
+        
         let url = req.body.url//save url
-        if(!url.includes('sephora')) throw "Not Valid URL"
+        if(!url.includes('gucci')) throw "Not Valid URL"
 
-        let content = await getContent(url)//load content
-        if(content === null || content==='') throw "Error Loading Webcontent"
-        const $ = cheerio.load(content)//load cheerio with page
+        let page = await axios.get(url)//load page
+        if(page === null || page==='') throw "Error Loading WebPage"
+
+        const $ = cheerio.load(page.data)//load cheerio with page
 
         const product = {}//create product
         product.title = $('meta[property = og:title]').attr('content')//scrap og:title
         product.description = $('meta[property = og:description]').attr('content')//scrap og:description
-        product.image = $('img.css-1rovmyu.eanm77i0').attr('src')//scrap og:img
-        product.price = $('span.css-1oz9qb>.css-0').text()
+        product.image = $('meta[property = og:image]').attr('content')//scrap og:img
+        product.price = ''//we dont know price
         product.currency = 'EUR'//by default
         
         res.json({//send response with succes status
