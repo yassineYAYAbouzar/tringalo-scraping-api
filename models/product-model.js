@@ -5,7 +5,7 @@ const productSchema = new mongoose.Schema(
         productTitle: String,
         productDescription: String,
         productImage: String,
-        productLink: {type: [String], index: true},
+        productLink: {type: String, index: {unique: true, dropDups: true, sparse: true}},
         productPrice: String,
         productPriceCurrency: String,
         updatedAt: Date

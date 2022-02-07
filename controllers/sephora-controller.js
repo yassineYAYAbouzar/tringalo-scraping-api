@@ -14,9 +14,12 @@ exports.findProduct = async (req, res) => {
         let topLevelDomain = getTopLevelDomain(url)//we get the top level domain
         
         let product = {}
-        if(checkIfProductIsInDB(url)){//if product exist in DB, we return data from db to user
+        if(await checkIfProductIsInDB(url)){//if product exist in DB, we return data from db to user
+            product = await Product.findOne({productLink: url})
             
-        }else{
+
+        }else{//if product doesn't exist in db, we scrap the data
+
             let content = await getContent(url)//load content
             if(content === null || content==='') throw "Error Loading Webcontent"
             const $ = cheerio.load(content)//load cheerio with page
@@ -25,16 +28,18 @@ exports.findProduct = async (req, res) => {
                 case '.com'://.com
                     product = processPageDotCom($)//return product
                 break;
-                case '.es'://.es
 
+                case '.es'://.es
+                    product = processPageDotEs($)
                 break;
 
                 case '.fr'://.fr
-
+                    product = processPageDotFr($)
                 break;
             }
         }
 
+        await saveProductToDB(product, url)//we save the product to the db
 
         res.json({//send response with succes status
             status: 'success',
@@ -73,12 +78,43 @@ const getTopLevelDomain = (url) => {//returns TLD
 
 }
 
-const checkIfProductIsInDB = (url) => {//true if product is in db, false if is not
-    return false
+const checkIfProductIsInDB = async (url) => {//true if product is in db, false if is not
+
+    let product = await Product.findOne({productLink: url})//we search the product
+
+    if(!product){
+        return false
+    }else{
+        return true
+    }
+     
+
 }
 
-const saveProductToDB = (product) => {//saves product to db
+const saveProductToDB = async (product, url) => {//saves product to db
+    try {
+        let productDB = {//new product
+            productTitle: product.title,
+            productDescription: product.description,
+            productImage: product.image,
+            productLink: url,
+            productPrice: product.price,
+            productPriceCurrency: product.currency,
+            updatedAt: new Date()
+        };
 
+        let filter = {
+            productLink: url
+        }
+
+
+        return await Product.findOneAndUpdate(filter, productDB, {
+            new: true, upsert: true
+        });
+        
+    } catch (error) {
+        throw error
+    }
 }
 
 const checkIfProductHasAllProperties = (product) => {//check if product has all properties before sending it to view
@@ -87,10 +123,30 @@ const checkIfProductHasAllProperties = (product) => {//check if product has all 
 
 const processPageDotCom = ($) => {
     const product = {}//create product
-    product.title = $('meta[property = og:title]').attr('content')//scrap og:title
-    product.description = $('meta[property = og:description]').attr('content')//scrap og:description
-    product.image = $('img.css-1rovmyu.eanm77i0').attr('src')//scrap og:img
-    product.price = $('span.css-1oz9qb>.css-0').text()
+    product.title = $('meta[property = og:title]').attr('content') || ''//scrap og:title
+    product.description = $('meta[property = og:description]').attr('content') || ''//scrap og:description
+    product.image = $('img.css-1rovmyu.eanm77i0').attr('src') || ''//scrap og:img
+    product.price = $('span.css-1oz9qb>.css-0').text() || ''
+    product.currency = 'EUR'//by default
+    return product
+}
+
+const processPageDotEs = ($) => {
+    const product = {}//create product
+    product.title = $('meta[property = og:title]').attr('content') || ''//scrap og:title
+    product.description = $('img.primary-image').attr('content') || ''//scrap og:description
+    product.image = $('div.').attr('src') || ''//scrap og:img
+    product.price = $('span.css-1oz9qb>.css-0').text() || ''
+    product.currency = 'EUR' || ''//by default
+    return product
+}
+
+const processPageDotFr = ($) => {
+    const product = {}//create product
+    product.title = $('meta[property = og:title]').attr('content') || ''//scrap og:title
+    product.description = $('meta[property = og:description]').attr('content') || ''//scrap og:description
+    product.image = $('img.productthumbnail').attr('src') || ''//scrap og:img
+    product.price = $('span.css-1oz9qb>.css-0').text() || ''
     product.currency = 'EUR'//by default
     return product
 }
