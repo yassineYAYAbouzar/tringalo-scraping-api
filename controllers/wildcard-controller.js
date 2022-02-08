@@ -4,15 +4,15 @@ const mongoose = require('mongoose')
 const Product = require('../models/product-model')
 
 exports.findProduct = async (req, res) => {
-    try {//try
-        
-        
-        let url = req.body.url//save url
-        if(!url.includes('ikea')) throw "Not Valid URL"
+    try {
 
-        let product = {}//create product
-        if(await checkIfProductIsInDB(url)){
+        let url = req.body.url //take url
+        if(!url.includes(req.params.shop)) throw "Not valid URL"
+       
+        let product = {}//instanciate product
+        if(await checkIfProductIsInDB(url)){//if product is in db, save and return to view
             product = await Product.findOne({link: url})
+
 
         }else{
 
@@ -20,34 +20,36 @@ exports.findProduct = async (req, res) => {
             if(page === null || page==='') throw "Error Loading WebPage"
 
             const $ = cheerio.load(page.data)//load cheerio with page
-            product.title = $('meta[name = og:title]').attr('content') || ''//scrap og:title
-            product.description = $('meta[name = og:description]').attr('content') || ''//scrap og:description
-            product.image = $('meta[property = og:image]').attr('content') || ''//scrap og:img
+            product.title = $('meta[name = og:title]').attr('content') || $('meta[property = og:title]').attr('content') || ''//scrap og:title
+            product.description = $('meta[name = og:description]').attr('content') || $('meta[property = og:description]').attr('content') ||''//scrap og:description
+            product.image = $('meta[name = og:image]').attr('content') || $('meta[property = og:image]').attr('content') || ''//scrap og:img
             product.price = ''//we dont know price
             product.currency = 'EUR'//by default
-            product = await saveProductToDB(product, url)
 
+            product = await saveProductToDB(product, url)
+            
         }
-        
-        
-        
-        res.json({//send response with succes status
+
+        res.json({//return success response
             status: 'success',
             product: product
         }).end()
 
-    } catch (error) {//catch
+    } catch (error) {
 
-        res.json({//send response with failed status
+
+
+        res.json({//return failed response
             status: 'failed',
-            error: error
+            product: req.params.shop
         }).end()
+
     }
 
 }
 
 const saveProductToDB = async (product, url) => {//saves product to db
-  
+
     try {
         let productDB = {//new product
             title: product.title,
@@ -63,11 +65,11 @@ const saveProductToDB = async (product, url) => {//saves product to db
             link: url
         }
 
-        
+
         return await Product.findOneAndUpdate(filter, productDB, {
             new: true, upsert: true
         });
-        
+
     } catch (error) {
         throw error
     }
@@ -75,19 +77,19 @@ const saveProductToDB = async (product, url) => {//saves product to db
 
 const checkIfProductIsInDB = async (url) => {//true if product is in db and proper date and format, false if is not
 
-    let product = await Product.findOne({link: url})//we search the product
+    let product = await Product.findOne({ link: url })//we search the product
 
-    if(!product){
+    if (!product) {
         return false
-    }else{
+    } else {
 
         let timeInMs = Math.abs(product.updatedAt - new Date().getTime())
-        let timeInHs = timeInMs / (3600*1000)
-        if(timeInHs > 12) return false//if more than 12h, return false
+        let timeInHs = timeInMs / (3600 * 1000)
+        if (timeInHs > 12) return false//if more than 12h, return false
 
 
         return true
     }
-     
+
 
 }

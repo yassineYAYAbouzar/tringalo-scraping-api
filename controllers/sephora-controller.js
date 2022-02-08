@@ -16,7 +16,7 @@ exports.findProduct = async (req, res) => {
         let product = {}
         if(await checkIfProductIsInDB(url)){//if product exist in DB, we return data from db to user
             global.tabs--
-            product = await Product.findOne({productLink: url})
+            product = await Product.findOne({link: url})
             
 
         }else{//if product doesn't exist in db, we scrap the data
@@ -38,9 +38,12 @@ exports.findProduct = async (req, res) => {
                     product = processPageDotFr($)//return LE product
                 break;
             }
+            validateParams(product)
+            product = await saveProductToDB(product, url)//we save the product to the db
+
         }
 
-        product = await saveProductToDB(product, url)//we save the product to the db
+        
 
         res.json({//send response with succes status
             status: 'success',
@@ -79,17 +82,19 @@ const getTopLevelDomain = (url) => {//returns TLD
 
 }
 
-const checkIfProductIsInDB = async (url) => {//true if product is in db, false if is not
+const checkIfProductIsInDB = async (url) => {//true if product is in db and proper date and format, false if is not
 
-    let product = await Product.findOne({productLink: url})//we search the product
+    let product = await Product.findOne({link: url})//we search the product
 
     if(!product){
         return false
     }else{
         
+        let timeInMs = Math.abs(product.updatedAt - new Date().getTime())
+        let timeInHs = timeInMs / (3600*1000)
+        if(timeInHs > 12) return false//if more than 12h, return false
 
-        console.log(new Date())
-        console.log(product.updatedAt.getTime())
+
         return true
     }
      
@@ -97,22 +102,23 @@ const checkIfProductIsInDB = async (url) => {//true if product is in db, false i
 }
 
 const saveProductToDB = async (product, url) => {//saves product to db
+  
     try {
         let productDB = {//new product
-            productTitle: product.title,
-            productDescription: product.description,
-            productImage: product.image,
-            productLink: url,
-            productPrice: product.price,
-            productPriceCurrency: product.currency,
+            title: product.title,
+            description: product.description,
+            image: product.image,
+            link: url,
+            price: product.price,
+            currency: product.currency,
             updatedAt: new Date()
         };
 
         let filter = {
-            productLink: url
+            link: url
         }
 
-
+        
         return await Product.findOneAndUpdate(filter, productDB, {
             new: true, upsert: true
         });
@@ -122,12 +128,24 @@ const saveProductToDB = async (product, url) => {//saves product to db
     }
 }
 
+const validateParams = (product) => {//validate params
+
+    try {
+        if(!product.title || product.title === '') throw "Error, scraping failed"
+        if(!product.description || product.description === '') throw "Error, scraping failed"
+
+    } catch (error) {
+        throw error
+    }
+
+}
 
 const processPageDotCom = ($) => {
+
     const product = {}//create product
     product.title = $('meta[property = og:title]').attr('content') || ''//scrap og:title
     product.description = $('meta[property = og:description]').attr('content') || ''//scrap og:description
-    product.image = $('img.css-1rovmyu.eanm77i0').attr('src') || ''//scrap og:img
+    product.image = $('img.css-1rovmyu.e65zztl0').attr('src') || ''//scrap og:img
     product.price = $('span.css-1oz9qb>.css-0').text() || ''
     product.currency = 'EUR'//by default
     return product
@@ -136,10 +154,11 @@ const processPageDotCom = ($) => {
 const processPageDotEs = ($) => {
     const product = {}//create product
     product.title = $('meta[property = og:title]').attr('content') || ''//scrap og:title
-    product.description = $('img.primary-image').attr('content') || ''//scrap og:description
-    product.image = $('div.').attr('src') || ''//scrap og:img
+    product.description = $('meta[property = og:description]').attr('content') || ''//scrap og:description
+    product.image = 'https://www.sephora.es' + $('div.zoomLens>img').attr('src') || ''//scrap og:img
     product.price = $('span.css-1oz9qb>.css-0').text() || ''
     product.currency = 'EUR' || ''//by default
+
     return product
 }
 
