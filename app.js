@@ -20,7 +20,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 
 //CONNECT DB
-mongoose.connect(process.env.DB_QUERY).then(()=>console.log('mongodb connected...'))
+mongoose.connect(`mongodb://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.DB_NAME}?authSource=admin&authMechanism=SCRAM-SHA-256&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false`).then(()=>console.log('mongodb connected...'))
 
 
 //API ROUTES

@@ -5,9 +5,15 @@ const middleware = require('../middleware/middleware')//middlewares
 
 // router.use(middleware.countRequestesMiddleware)
 
-//Sephora Routes
-const sephora_controller = require('../controllers/sephora-controller')
-router.route('/sephora').post(middleware.isAllowedNav, sephora_controller.findProduct)
+
+
+//Yassine Playwright Routes
+const sephora_controller = require('../controllers/sephora-controller-pw')
+router.route('/sephora').post(sephora_controller.findProduct)
+
+//Sephora Puppeteer Routes
+// const sephora_controller = require('../controllers/sephora-controller-pt')
+// router.route('/sephora').post(middleware.isAllowedNav, sephora_controller.findProduct)
 
 //Zalando Routes
 /*const zalando_controller = require('../controllers/zalando-controller')
