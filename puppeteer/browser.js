@@ -9,7 +9,7 @@ let startBrowser = async () => {
 
     try {
         browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
             ignoreDefaultArgs: ["--enable-automation"],
             args: [
             '--no-sandbox',
