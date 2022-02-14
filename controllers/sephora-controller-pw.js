@@ -12,9 +12,8 @@ const mongoose = require('mongoose')
         }
  */
 exports.findProduct = (req, res) => {
+ try {
 
-    try {
-        
 
 
         res.json({//if it scraps properly, returns status success + product
@@ -23,7 +22,7 @@ exports.findProduct = (req, res) => {
         }).end()
 
     } catch (error) {
-        
+
 
 
         res.json({//if something fails, return status failed + errors
@@ -31,7 +30,4 @@ exports.findProduct = (req, res) => {
             product: error
         }).end()
     }
-
-
-
 }
