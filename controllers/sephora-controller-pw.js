@@ -15,19 +15,42 @@ exports.findProduct = (req, res) => {
  try {
 
 
+ (async () =>{ 
+        try {
+          for (const browserType of ['chromium', 'firefox']) {
+              const browser = await playwright[browserType].launch();
+              const context = await browser.newContext({locale: 'de-DE',
+              timezoneId: 'Europe/Berlin' ,userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'});
+              const page = await context.newPage();
+              await page.goto(req.query.url);
+              const html = await page.content();
+              var $ = cheerio.load(await html);
+                url = $('meta[property="og:url"]').attr('content')
+                image = $('img .primary-image').attr('src')
+                description = $('meta[property="og:description"]').attr('content')
+                title = $('meta[property="og:title"]').attr('content')
+                price = $('meta[itemprop="price"]').attr('content')
+  
+  
+                res.json({//if it scraps properly, returns status success + product
+                  status: 'success',
+                  product:{
+                      title,
+                      image,
+                      description,
+                      title,
+                      price,
+                      currency: 'USD'
+                  },
+              }).end()
+        await browser.close();
+        }
+        } catch (error) {
+          res.json({//if something fails, return status failed + errors
+              status: 'failed',
+              product: error
+          }).end()
+        }
+      })();
 
-        res.json({//if it scraps properly, returns status success + product
-            status: 'success',
-            product: {}
-        }).end()
-
-    } catch (error) {
-
-
-
-        res.json({//if something fails, return status failed + errors
-            status: 'failed',
-            product: error
-        }).end()
-    }
 }
